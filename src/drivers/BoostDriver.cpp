@@ -5,6 +5,7 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/test/execution_monitor.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log_formatter.hpp>
 #include <boost/thread/once.hpp>
@@ -50,13 +51,16 @@ public:
     // Formatter
     void log_start( std::ostream&, counter_t /*test_cases_amount*/) {};
     void log_finish( std::ostream&) {};
-    void log_build_info( std::ostream&) {};
+    void log_build_info( std::ostream&, bool log_build_info) {};
 
     void test_unit_start( std::ostream&, test_unit const& /*tu*/) {};
     void test_unit_finish( std::ostream&, test_unit const& /*tu*/, unsigned long /*elapsed*/) {};
     void test_unit_skipped( std::ostream&, test_unit const& /*tu*/) {};
 
-    void log_exception_start( std::ostream&, log_checkpoint_data const&, execution_exception const&) {};
+    void log_exception_start( std::ostream&, log_checkpoint_data const&, execution_exception const& x) {
+      description << "Exception: " << x.what() << "\n";
+    };
+
     void log_exception_finish( std::ostream& ) {};
 
     void log_entry_start( std::ostream&, log_entry_data const&, log_entry_types /*let*/) {};
@@ -111,9 +115,8 @@ const InvokeResult BoostStep::invokeStepBody() {
 }
 
 void BoostStep::initBoostTest() {
-    int argc = 1;
-    char dummyArg[] = "dummy";
-    char *argv[] = { dummyArg };
+    int argc = 2;
+    char *argv[] = {"dummy", "--catch_system_errors=no"};
     framework::init(&boost_test_init, argc, argv);
 #if BOOST_VERSION >= 105900
     framework::finalize_setup_phase();

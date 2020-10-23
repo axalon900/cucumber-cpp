@@ -26,9 +26,21 @@ It relies on a few executables:
 
 It relies on a few libraries:
 
-* [Boost](http://www.boost.org/) 1.46 or later (1.51+ on Windows).
-  Required libraries: *thread*, *system*, *regex*, *date_time* and *program_options*.
-  Optional library for Boost Test driver: *test*.
+* [Boost](http://www.boost.org/) 1.71 or later.
+  Required libraries to be fetched using *bcp*:
+  * algorithm
+  * asio
+  * assign
+  * filesystem
+  * foreach
+  * multi_array
+  * program_options
+  * regex
+  * smart_ptr
+  * spirit
+  * tests
+  * thread
+  * variant
 * [GTest](http://code.google.com/p/googletest/) 1.6 or later.
   Optional for the GTest driver. By default downloaded and built by CMake.
 * [GMock](http://code.google.com/p/googlemock/) 1.6 or later.

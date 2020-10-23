@@ -63,36 +63,20 @@ option_depr        (VALGRIND_TESTS            CUKE_TESTS_VALGRIND)
 #
 # Generic Compiler Flags
 #
+# TODO: A better fix should handle ld's --as-needed flag
+if(UNIX AND NOT APPLE)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker '--no-as-needed'")
+endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT} -Werror -Wall -Wextra ${CMAKE_CXX_FLAGS}")
-    # TODO: A better fix should handle ld's --as-needed flag
-    if(UNIX AND NOT APPLE)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Xlinker '--no-as-needed'")
+function(cuke_add_compile_options target_name)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${target_name} PRIVATE -Werror -Wall -Wextra)
+    elseif(MSVC)
+        target_compile_definitions(${target_name} PRIVATE NOMINMAX) # exclude M$ min/max macros
+        target_compile_options(${target_name} PRIVATE /wd4996) # don't warn about use of plain C functions without (non-portable) "_s" suffix
+        #set(CMAKE_CXX_FLAGS_DEBUG "/analyze ${CMAKE_CXX_FLAGS_DEBUG}")
     endif()
-elseif(MSVC)
-    set(CMAKE_CXX_FLAGS "-DNOMINMAX ${CMAKE_CXX_FLAGS}") # exclude M$ min/max macros
-    set(CMAKE_CXX_FLAGS "/wd4996 ${CMAKE_CXX_FLAGS}") # don't warn about use of plain C functions without (non-portable) "_s" suffix
-    #set(CMAKE_CXX_FLAGS_DEBUG "/analyze ${CMAKE_CXX_FLAGS_DEBUG}")
-endif()
-
-#
-# Colored Terminal Output
-#
-
-if(UNIX AND (
-       (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9))
-    AND CMAKE_GENERATOR STREQUAL "Ninja")
-  # These compilers generate coloured output, but by default only when their output channel is a
-  # terminal (TTY/PTY). Ninja however captures all output in a pipe (per-subprocess), disabling
-  # coloured compiler diagnostics. We forcefully enable it because Ninja, since 1.0.0
-  # (ninja-build/ninja#198) takes care to strip VT100 CSI control sequences from the output if Ninja
-  # itself is writing to a pipe instead of a terminal. As a result this should give us the best of
-  # both worlds: coloured output when we're running in a terminal, plain output for editors, IDEs,
-  # etc.
-  set(CMAKE_CXX_FLAGS "-fdiagnostics-color=always ${CMAKE_CXX_FLAGS}" CACHE STRING "" FORCE)
-endif()
+endfunction()
 
 #
 # Boost

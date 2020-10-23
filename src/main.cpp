@@ -3,6 +3,7 @@
 #include <cucumber-cpp/internal/connectors/wire/WireServer.hpp>
 #include <cucumber-cpp/internal/connectors/wire/WireProtocol.hpp>
 #include <iostream>
+#include <memory>
 #include <boost/program_options.hpp>
 #include <boost/scoped_ptr.hpp>
 
@@ -13,12 +14,12 @@ void acceptWireProtocol(const std::string& host, int port, const std::string& un
     CukeEngineImpl cukeEngine;
     JsonSpiritWireMessageCodec wireCodec;
     WireProtocolHandler protocolHandler(wireCodec, cukeEngine);
-    boost::scoped_ptr<SocketServer> server;
+    std::shared_ptr<SocketServer> server;
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
     if (!unixPath.empty())
     {
         UnixSocketServer* const unixServer = new UnixSocketServer(&protocolHandler);
-        server.reset(unixServer);
+        server = std::shared_ptr<SocketServer>{unixServer};
         unixServer->listen(unixPath);
         if (verbose)
             std::clog << "Listening on socket " << unixServer->listenEndpoint() << std::endl;
@@ -30,7 +31,7 @@ void acceptWireProtocol(const std::string& host, int port, const std::string& un
 #endif
     {
         TCPSocketServer* const tcpServer = new TCPSocketServer(&protocolHandler);
-        server.reset(tcpServer);
+        server = std::shared_ptr<SocketServer>{tcpServer};
         tcpServer->listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(host), port));
         if (verbose)
             std::clog << "Listening on " << tcpServer->listenEndpoint() << std::endl;

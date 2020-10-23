@@ -49,6 +49,8 @@ add_library(cucumber-cpp-internal STATIC ${CUKE_SOURCES})
 
 add_library(cucumber-cpp-nomain ${CUKE_SOURCES})
 add_library(cucumber-cpp ${CUKE_SOURCES} main.cpp)
+cuke_add_compile_options(cucumber-cpp-nomain)
+cuke_add_compile_options(cucumber-cpp)
 
 set_target_properties(
     cucumber-cpp-internal
